@@ -27,16 +27,16 @@ let rec term_match : term -> pattern -> bool = fun t p ->
     | _ -> false
   end
   | Var x -> p = Var x || p = Any
-  | Lit i -> p = Any
+  | Lit i -> p = Lit i || p = Any
   | _  -> false (* Should not get here. Terms cannot allowed to contain Any. *)
 
 
 (*
  * Initial term matcher - Given a term and a pattern returns all the subterms
  * that match the pattern. Note that the "Any" pattern matches all subterms
- * not just Var's and Lit's
+ * not just Var's and Lit's.
  * *)
-let matching : term ->  pattern -> term list = fun t p ->
+let matching_list : term ->  pattern -> term list = fun t p ->
   let rec matching_aux : term -> term list -> term list = fun cur acc ->
     match cur with
     | BinOp (t1, op, t2) ->
@@ -49,6 +49,14 @@ let matching : term ->  pattern -> term list = fun t p ->
 
 
 (* Return the P[x], where the substitution will happen etc *)
-(* let matching : term ->  pattern -> (term -> term)  = fun t p  *)
-
+let matching_sub : term ->  pattern -> term -> term = fun t p s ->
+  let rec matching_aux : term -> term = fun cur ->
+    if term_match cur p then s else match cur with
+    | BinOp (t1, op, t2) ->
+        let t1' = matching_aux t1 and t2' = matching_aux t2 in
+      BinOp(t1', op, t2')
+    | Var x -> if p = Var x || p = Any then s else cur
+    | Lit i -> if p = Any then s else cur
+    | _ -> cur
+  in matching_aux t
 
