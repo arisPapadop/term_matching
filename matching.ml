@@ -1,4 +1,5 @@
 open Ast
+
 (*
  *
  * let _ =
@@ -13,5 +14,6 @@ open Ast
  *)
 
 let t1 = (BinOp (BinOp(Lit(1), "*", Lit(2)), "+", Var "x"))
-let p1 = (BinOp (Empty, "+", Var "x"))
+let p1 = (BinOp (Any, "+", Var "x"))
 let _ =  List.map (Format.printf "Term: [%a]\n%!" pretty_print) (matching t1 p1)
+
