@@ -39,7 +39,29 @@ let p4 = term_from_string "x + y"
 let t5 = term_from_string "1 * 2 + x "
 let p5 = term_from_string "2 + x"
 
-let tests = [(t1, p1); (t2, p2); (t3, p3)]
+(* Nothing matches, because multiplication has lower precedence.  *)
+let t6 = term_from_string "z * y + x "
+let p6 = term_from_string "z * _ + x"
 
-let _ =  List.map (Format.printf "Term: [%a]\n%!" pretty_print) (matching t5 p5)
+(* Nothing matches, because multiplication has lower precedence.  *)
+let t7 = term_from_string "2 + x "
+let p7 = term_from_string "_ * x"
 
+(*
+ * (* Helpers for testing. *)
+ * let rec unzip = function
+ *   | [] -> ([], [])
+ *   | (a , b) :: t -> let (l1, l2) = unzip t in (a :: l1, b :: l2)
+ *)
+
+let tests = [(t1, p1); (t2, p2); (t3, p3); (t4, p4); (t5, p5);
+             (t6, p6); (t7, p7)]
+
+let _ = for i = 0 to List.length tests -1 do
+  let (t, p) = List.nth tests i in
+  Format.printf "Test %i \n%!" i;
+  Format.printf "Term: [%a] - " pretty_print t;
+  Format.printf "Pattern: [%a]\n%!Matches \n%!" pretty_print p;
+  List.map (Format.printf "[%a]\n%!" pretty_print) (matching t p);
+  Format.print_string "\n"
+  done
