@@ -1,4 +1,5 @@
 open Ast
+open Parser
 
 (*
  *
@@ -13,7 +14,32 @@ open Ast
  *   Format.printf "[%a]\n%!" pretty_print t
  *)
 
-let t1 = (BinOp (BinOp(Lit(1), "*", Lit(2)), "+", Var "x"))
-let p1 = (BinOp (Any, "+", Var "x"))
-let _ =  List.map (Format.printf "Term: [%a]\n%!" pretty_print) (matching t1 p1)
+(*
+ * A bunch of handwritten tests to check the first implementation of the term
+ * matcher.
+ *)
+
+(* The whole term matches*)
+let t1 = term_from_string "1 * 2 + x"
+let p1 = term_from_string "1 * 2 + _"
+
+(* Everything matches. *)
+let t2 = term_from_string "1 + 2 + 3 + 4"
+let p2 = term_from_string "_"
+
+(* The second operand matches. *)
+let t3 = term_from_string "(1 + 2) + (x + y)"
+let p3 = term_from_string "x + y"
+
+(* Nothing matches, because operations are left-associative. *)
+let t4 = term_from_string "1 + 2 + x + y"
+let p4 = term_from_string "x + y"
+
+(* Nothing matches, because multiplication has lower precedence.  *)
+let t5 = term_from_string "1 * 2 + x "
+let p5 = term_from_string "2 + x"
+
+let tests = [(t1, p1); (t2, p2); (t3, p3)]
+
+let _ =  List.map (Format.printf "Term: [%a]\n%!" pretty_print) (matching t5 p5)
 
