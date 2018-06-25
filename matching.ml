@@ -63,13 +63,9 @@ let p8 = term_from_string "_ * x"
  *)
 
 
+
 let tests1 = [(t1, p1); (t2, p2); (t3, p3); (t4, p4); (t5, p5);
               (t6, p6); (t7, p7); (t8, p8)]
-
-let tests2 = [(t1, p1, s1); (t2, p2, s2); (t3, p3, s3); (t4, p4, s4)]
-
-let _ = Format.printf "Substitution Test: [%a]\n%!"
-          pretty_print (Ast.matching_sub t3 p3 t1)
 
 let _ =
   Format.printf "Matching Tests. \n%!" ;
@@ -82,6 +78,8 @@ let _ =
   Format.print_string "\n"
   done
 
+let tests2 = [(t1, p1, s1); (t2, p2, s2); (t3, p3, s3); (t4, p4, s4)]
+
 let _ =
   Format.printf "Substitution Tests. \n%!" ;
   for i = 0 to List.length tests2 -1 do
@@ -91,5 +89,15 @@ let _ =
   Format.printf "Pattern: [%a] - " pretty_print p;
   Format.printf "Substitute with : [%a] \n%!" pretty_print s;
   Format.printf "Result [%a]\n%!" pretty_print (matching_sub t p s);
+  Format.print_string "\n"
+  done
+
+(* let c_pat1 = (In term_from_string "_ + _") *)
+
+let tests3 = []
+
+let _ =
+  Format.printf "Context Selection Tests. \n%!" ;
+  for i = 0 to List.length tests3 -1 do
   Format.print_string "\n"
   done

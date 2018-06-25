@@ -88,32 +88,26 @@ let matching_sub : term ->  pattern -> term -> term = fun t p s ->
  * Given a term and a contextual pattern find all occurences of the subterm
  * that would be rewritten in this case.
  * *)
-let rec subterm_select : term -> c_pattern -> term list = fun t c_pat ->
-  match c_pat with
-  | TermP pat -> matching_list t pat
-  | In pat ->
-      let rec first_occurence : term -> pattern -> term = fun t pat ->
-        match (t, pat) with
-        | (Any, _) -> Any
-        | (_, Any) -> t
-        | (Lit i, Lit j) -> if i = j then t else Any
-        | (Var x, Var y) -> if x = y then t else Any
-        | (BinOp(t1, op, t2), BinOp(p1, p_op, p2)) ->
-            if term_match t pat then t else let occ1 = (first_occurence t1 p1)
-            in if occ1 = Any then first_occurence t2 p2 else occ1
-        | (BinOp(t1, op, t2), _) -> let occ1 = first_occurence t1 pat in
-              if occ1 = Any then first_occurence t2 pat else occ1
-        | _ -> Any
-      in
-        let occ = first_occurence t pat in if occ = Any then assert false else
-        matching_list t occ
-    (* | InIn (pat1, pat2) -> subterm_select t pat1 *)
-
-
-
-
-
-
-
-
+(*
+ * let rec subterm_select : term -> c_pattern -> term list = fun t c_pat ->
+ *   match c_pat with
+ *   | TermP pat -> matching_list t pat
+ *   | In pat ->
+ *       let rec first_occurence : term -> pattern -> term = fun t pat ->
+ *         match (t, pat) with
+ *         | (Any, _) -> Any
+ *         | (_, Any) -> t
+ *         | (Lit i, Lit j) -> if i = j then t else Any
+ *         | (Var x, Var y) -> if x = y then t else Any
+ *         | (BinOp(t1, op, t2), BinOp(p1, p_op, p2)) ->
+ *             if term_match t pat then t else let occ1 = (first_occurence t1 p1)
+ *             in if occ1 = Any then first_occurence t2 p2 else occ1
+ *         | (BinOp(t1, op, t2), _) -> let occ1 = first_occurence t1 pat in
+ *               if occ1 = Any then first_occurence t2 pat else occ1
+ *         | _ -> Any
+ *       in
+ *         let occ = first_occurence t pat in if occ = Any then assert false else
+ *         matching_list t occ
+ *     (* | InIn (pat1, pat2) -> subterm_select t pat1 *)
+ *)
 
