@@ -15,21 +15,32 @@ let rec pretty_print : Format.formatter -> term -> unit = fun fmt t ->
       Format.fprintf fmt "(%a %s %a)" pretty_print t1 op pretty_print t2
 
 (* Main matching method. *)
-let rec term_match : term -> pattern -> bool = fun t p ->
-  match t with
-  | BinOp (t1, op, t2) -> begin
-    match p with
-    | BinOp (Any, p_op, Any) -> p_op = op
-    | BinOp (p1, p_op, Any)  -> p_op = op && term_match t1 p1
-    | BinOp (Any, p_op, p2)  -> p_op = op && term_match t2 p2
-    | BinOp (p1, p_op, p2) -> p_op = op && term_match t1 p1 && term_match t2 p2
-    | Any -> true
-    | _ -> false
-  end
-  | Var x -> p = Var x || p = Any
-  | Lit i -> p = Lit i || p = Any
-  | _  -> false (* Should not get here. Terms cannot allowed to contain Any. *)
+(*
+ * let rec term_match : term -> pattern -> bool = fun t p ->
+ *   match t with
+ *   | BinOp (t1, op, t2) -> begin
+ *     match p with
+ *     | BinOp (Any, p_op, Any) -> p_op = op
+ *     | BinOp (p1, p_op, Any)  -> p_op = op && term_match t1 p1
+ *     | BinOp (Any, p_op, p2)  -> p_op = op && term_match t2 p2
+ *     | BinOp (p1, p_op, p2) -> p_op = op && term_match t1 p1 && term_match t2 p2
+ *     | Any -> true
+ *     | _ -> false
+ *   end
+ *   | Var x -> p = Var x || p = Any
+ *   | Lit i -> p = Lit i || p = Any
+ *   | _  -> false (* Should not get here. Terms cannot allowed to contain Any. *)
+ *)
 
+let rec term_match : term -> pattern -> bool = fun t p ->
+  match (t, p) with
+  | (Any, _) -> invalid_arg "Invalid term, contains wildcard."
+  | (_, Any) -> true
+  | (Lit i, Lit j) -> i = j
+  | (Var x, Var y) -> x = y
+  | (BinOp(t1, op, t2), BinOp(p1, p_op, p2)) ->
+      p_op = op && term_match t1 p1 && term_match t2 p2
+  | _  -> false
 
 (*
  * Initial term matcher - Given a term and a pattern returns all the subterms
