@@ -92,17 +92,3 @@ let _ =
   Format.print_string "\n"
   done
 
-(* let c_pat1 = (In term_from_string "_ + _") *)
-
-let pat1 = InTerm ((MetaVar "X"), (BinOp (MetaVar "X", "+", Var "c")))
-let term1 = term_from_string "(a+b)+c"
-
-
-let tests3 = []
-
-let _ =
-  Format.printf "Context Selection Tests. \n%!" ;
-  (* for i = 0 to List.length tests3 -1 do *)
-  List.map (Format.printf "[%a]\n%!" pretty_print) (subterm_select term1 pat1);
-  (* Format.print_string "\n" *)
-  (* done *)

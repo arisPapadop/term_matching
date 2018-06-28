@@ -1,5 +1,3 @@
-(* open Bindlib *)
-
 type term =
   | Lit     of int
   | Var     of string
@@ -9,25 +7,6 @@ type term =
 
 type pattern = term
 
-type c_pattern =
-  | Term   of pattern
-  | InTerm of term * term (* Single level of depth. *)
-
-(*
- * Initial SSReflect contextual pattern selection implementation.
- *  - TermP is the simplest c_pattern. Here the context is empty.
- *  - In pattern is the simplest contextual pattern. The context is the pattern
- *    given.
- *  - InIn(pattern, pattern) is similar, but goes one level deeper than above.
- * *)
-
-(*
- * type c_pattern =
- *   | TermP of pattern
- *   | In    of pattern
- *   (* | InIn  of pattern * pattern *)
- *)
-
 let rec pretty_print : Format.formatter -> term -> unit = fun fmt t ->
   match t with
   | Lit i -> Format.fprintf fmt "%i" i
@@ -36,25 +15,6 @@ let rec pretty_print : Format.formatter -> term -> unit = fun fmt t ->
   | BinOp (t1, op, t2) ->
       Format.fprintf fmt "(%a %s %a)" pretty_print t1 op pretty_print t2
   | MetaVar s -> Format.fprintf fmt "%s" s
-
-(*
- * (* Main matching method. *)
- * let rec term_match : term -> pattern -> bool = fun t p ->
- *   match t with
- *   | BinOp (t1, op, t2) -> begin
- *     match p with
- *     | BinOp (Any, p_op, Any) -> p_op = op
- *     | BinOp (p1, p_op, Any)  -> p_op = op && term_match t1 p1
- *     | BinOp (Any, p_op, p2)  -> p_op = op && term_match t2 p2
- *     | BinOp (p1, p_op, p2) -> p_op = op && term_match t1 p1 && term_match t2 p2
- *     | Any -> true
- *     | _ -> false
- *   end
- *   | Var x -> p = Var x || p = Any
- *   | Lit i -> p = Lit i || p = Any
- *   | _  -> false (* Should not get here. Terms cannot allowed to contain Any. *)
- *
- *)
 
 let rec term_match : term -> pattern -> bool = fun t p ->
   match (t, p) with
@@ -94,34 +54,4 @@ let matching_sub : term ->  pattern -> term -> term = fun t p s ->
     | Lit i -> if p = Any then s else cur
     | _ -> cur
   in matching_aux t
-
-(*
- * Given a term and a contextual pattern find all occurences of the subterm
- * that would be rewritten in this case.
- * *)
-
-let rec subterm_select : term -> c_pattern -> term list = fun t c_pat ->
-  match c_pat with
-  | Term pat -> matching_list t pat
-  | InTerm (MetaVar x, pat) ->
-      let pat_to_find = matching_sub pat (MetaVar x)  Any in
-      begin
-      let rec first_occurence : term -> pattern -> term = fun t pat ->
-        match (t, pat) with
-        | (Any, _) -> Any
-        | (_, Any) -> t
-        | (Lit i, Lit j) -> if i = j then t else Any
-        | (Var x, Var y) -> if x = y then t else Any
-        | (BinOp(t1, op, t2), BinOp(p1, p_op, p2)) ->
-            if term_match t pat then t else let occ1 = (first_occurence t1 p1)
-            in if occ1 = Any then first_occurence t2 p2 else occ1
-        | (BinOp(t1, op, t2), _) -> let occ1 = first_occurence t1 pat in
-              if occ1 = Any then first_occurence t2 pat else occ1
-        | _ -> Any
-      in
-        let occ = first_occurence t pat_to_find in if occ = Any then assert false else
-        matching_list t occ
-      end
-    (* | InIn (pat1, pat2) -> subterm_select t pat1 *)
-
 
