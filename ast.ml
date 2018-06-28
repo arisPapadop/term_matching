@@ -59,6 +59,28 @@ let matching_sub : term ->  pattern -> term -> term = fun t p s ->
     | _ -> cur
   in matching_aux t
 
+
+(*
+ * This method is given a metavariable and a term containing that metavariable
+ * - By assumption the term contains that metavariable exactly once -
+ * it returns a term in which
+ * *)
+
+let rec context_match : term -> c_pattern -> bool = fun t p ->
+  match (t, p) with
+  | (Any, _) -> invalid_arg "Invalid term, contains wildcard."
+  | (_, Term pat) -> term_match t pat
+  | (Lit i, InTerm _) -> false
+  | (Var x, InTerm _) -> false
+  | (_, InTerm (MetaVar x, MetaVar y)) -> x = y
+  | (BinOp(t1, op, t2), InTerm (MetaVar x, BinOp(p1, p_op, p2))) ->
+      p_op = op && context_match t1 (MetaVar x, p1)
+                && context_match t2 (MetaVar x, p2)
+  | _  -> false
+
+let rec find_context : term -> c_pattern -> term
+
+
 (*
  * Given a term and a contextual pattern find all occurences of the subterm
  * that would be rewritten in this case.
@@ -68,6 +90,7 @@ let rec subterm_select : term -> c_pattern -> term list = fun t c_pat ->
   match (t, c_pat) with
   | (t, Term pat) -> matching_list t pat
   | (t, InTerm (MetaVar x, pat)) ->
+      let rec
   | _ -> invalid_arg "Contextual Pattern not of the right form"
 
 
