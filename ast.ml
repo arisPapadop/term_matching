@@ -59,6 +59,23 @@ let matching_sub : term ->  pattern -> term -> term = fun t p s ->
     | _ -> cur
   in matching_aux t
 
+(* Minimal helpers, for the option pattern matching.
+ * TODO: make them less minimal, maybe.
+ * *)
+let is_none = fun ob ->
+  match ob with
+  | Some x -> true
+  | None -> false
+
+let get = fun ob ->
+  match ob with
+  | Some x -> x
+  | None -> assert false
+
+(* Contextual Pattern Selection.
+ * Given a term and a contextual pattern find all occurences of the subterm
+ * that would be rewritten in this case.
+ * *)
 
 (*
  * This method is given a metavariable and a term containing that metavariable
@@ -74,29 +91,23 @@ let rec context_match : term -> c_pattern -> bool = fun t p ->
   | (Var x, InTerm _) -> false
   | (_, InTerm (MetaVar x, MetaVar y)) -> x = y
   | (BinOp(t1, op, t2), InTerm (MetaVar x, BinOp(p1, p_op, p2))) ->
-      p_op = op && context_match t1 (MetaVar x, p1)
-                && context_match t2 (MetaVar x, p2)
+      p_op = op && context_match t1 (InTerm (MetaVar x, p1))
+                && context_match t2 (InTerm (MetaVar x, p2))
   | _  -> false
 
-let rec find_context : term -> c_pattern -> term
-
-
-(*
- * Given a term and a contextual pattern find all occurences of the subterm
- * that would be rewritten in this case.
- * *)
+let find_context : term -> c_pattern -> term = fun t c_pat ->
+  let rec context_aux : term -> term option = fun cur ->
+    if context_match cur c_pat then Some cur else match cur with
+    | BinOp (t1, op, t2) ->
+        let t1' = context_aux t1 and t2' = context_aux t2 in
+        if  is_none t1' then t2' else t1'
+    | _ -> None
+  in get (context_aux t)
 
 let rec subterm_select : term -> c_pattern -> term list = fun t c_pat ->
   match (t, c_pat) with
   | (t, Term pat) -> matching_list t pat
-  | (t, InTerm (MetaVar x, pat)) ->
-      let rec
+  | (t, InTerm (MetaVar x, pat)) -> matching_list (find_context t c_pat) t
   | _ -> invalid_arg "Contextual Pattern not of the right form"
-
-
-
-
-
-
 
 
