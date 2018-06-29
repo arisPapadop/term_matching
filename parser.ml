@@ -5,6 +5,7 @@ let parser term (p : [`Atm | `Mul | `Pls]) =
   (* Atoms. *)
   | i:''[-]?[0-9]+''                when p = `Atm -> Lit(int_of_string i)
   | x:''[a-z]+''                    when p = `Atm -> Var(x)
+  | y:''[A-Z]+''                    when p = `Atm -> MetaVar(y)
   | "_"                             when p = `Atm -> Any
   | "(" t:(term `Pls) ")"           when p = `Atm -> t
   (* Multiplication level. *)
