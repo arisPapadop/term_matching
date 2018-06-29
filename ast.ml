@@ -20,7 +20,8 @@ let rec pretty_print : Format.formatter -> term -> unit = fun fmt t ->
       Format.fprintf fmt "(%a %s %a)" pretty_print t1 op pretty_print t2
   | MetaVar s -> Format.fprintf fmt "%s" s
 
-let pretty_print_context : Format.formatter -> c_pattern -> unit = fun fmt c_p ->
+let pretty_print_context : Format.formatter -> c_pattern -> unit =
+  fun fmt c_p ->
   match c_p with
   | Term pat -> pretty_print fmt pat
   | InTerm (v, pat) ->
@@ -93,17 +94,30 @@ let rec context_match : term -> c_pattern -> bool = fun t p ->
   match (t, p) with
   | (Any, _) -> invalid_arg "Invalid term, contains wildcard."
   | (_, Term pat) -> term_match t pat
-  | (Lit i, InTerm _) -> false
-  | (Var x, InTerm _) -> false
-  | (_, InTerm (MetaVar x, MetaVar y)) -> x = y
+  | (Lit i, InTerm (_, Lit j)) -> i = j
+  | (Var x, InTerm (_, Var y)) -> x = y
+  | (_, InTerm (_, Any)) -> true
+  | (_, InTerm (MetaVar x, MetaVar y)) -> true
   | (BinOp(t1, op, t2), InTerm (MetaVar x, BinOp(p1, p_op, p2))) ->
       p_op = op && context_match t1 (InTerm (MetaVar x, p1))
                 && context_match t2 (InTerm (MetaVar x, p2))
   | _  -> false
 
+let rec find_bound_subterm : term -> c_pattern -> term option = fun t p ->
+  match (t, p) with
+  | (_, Term pat) -> Some (List.hd (matching_list t pat)) (* TODO: Make better. *)
+  | (_, InTerm (MetaVar x, MetaVar y)) -> if x = y then Some t else None
+  | (BinOp(t1, op, t2), InTerm (MetaVar x, BinOp(p1, p_op, p2))) ->
+      if p_op = op then match find_bound_subterm t1 (InTerm (MetaVar x, p1)) with
+      | None -> find_bound_subterm t2 (InTerm (MetaVar x, p2))
+      | Some t -> Some t
+      else None
+  | _  -> None
+
 let find_context : term -> c_pattern -> term = fun t c_pat ->
   let rec context_aux : term -> term option = fun cur ->
-    if context_match cur c_pat then Some cur else match cur with
+    if context_match cur c_pat then find_bound_subterm cur c_pat
+    else match cur with
     | BinOp (t1, op, t2) ->
         let t1' = context_aux t1 and t2' = context_aux t2 in
         if  is_none t1' then t2' else t1'
@@ -113,7 +127,7 @@ let find_context : term -> c_pattern -> term = fun t c_pat ->
 let rec subterm_select : term -> c_pattern -> term list = fun t c_pat ->
   match (t, c_pat) with
   | (t, Term pat) -> matching_list t pat
-  | (t, InTerm (MetaVar x, pat)) -> matching_list (find_context t c_pat) t
+  | (t, InTerm (MetaVar _, _)) -> matching_list t (find_context t c_pat)
   | _ -> invalid_arg "Contextual Pattern not of the right form"
 
 
