@@ -42,8 +42,8 @@ let p7 = term_from_string "z * _ + x"
 let t8 = term_from_string "2 + x "
 let p8 = term_from_string "_ * x"
 
-let t9 = term_from_string "a+b+c"
-let p9 = term_from_string "a+b+c"
+let t9 = term_from_string "a + b + c"
+let p9 = term_from_string "a + b + c"
 
 (*
  * (* Helpers for testing. *)
@@ -59,9 +59,41 @@ let tests1 = [(t1, p1); (t2, p2); (t3, p3); (t4, p4); (t5, p5);
 let tests2 = [(t1, p1, s1); (t2, p2, s2); (t3, p3, s3); (t4, p4, s4)]
 
 
+(* This is the most basic context selection test. The context is (a + b)
+ * and that is the result we expect.
+ * *)
 let pat1   = term_from_string "X + c"
 let c_pat1 = InTerm ((MetaVar "X"), pat1)
-let term1  = term_from_string "(a+b)+c"
+let term1  = term_from_string "(a + b) + c"
+
+(* This test asserts that free metavariables act exactly as wildcards
+ * it returns the same result as above.
+ * *)
+let pat2   = term_from_string "X + _"
+let c_pat2 = InTerm ((MetaVar "X"), pat2)
+let term2  = term_from_string "(a + b) + c"
+
+let pat3   = term_from_string "X + c"
+let c_pat3 = InTerm ((MetaVar "X"), pat3)
+let term3  = term_from_string "((a + b) + c) + (a + b)"
+
+let pat4   = term_from_string "X + c"
+let c_pat4 = InTerm ((MetaVar "X"), pat4)
+let term4  = term_from_string "(a+b)+c"
+
+let pat5   = term_from_string "X + c"
+let c_pat5 = InTerm ((MetaVar "X"), pat5)
+let term5  = term_from_string "(a+b)+c"
+
+let pat6   = term_from_string "X + c"
+let c_pat6 = InTerm ((MetaVar "X"), pat6)
+let term6  = term_from_string "(a+b)+c"
+
+let pat7   = term_from_string "X + c"
+let c_pat7 = InTerm ((MetaVar "X"), pat7)
+let term7  = term_from_string "(a+b)+c"
 
 
-let tests3 = [(c_pat1, term1)]
+let tests3 = [(c_pat1, term1); (c_pat2, term2); (c_pat3, term3);
+              (c_pat4, term4); (c_pat5, term5); (c_pat6, term6);
+              (c_pat7, term7); ]

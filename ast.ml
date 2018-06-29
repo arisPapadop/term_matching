@@ -71,8 +71,8 @@ let matching_sub : term ->  pattern -> term -> term = fun t p s ->
  * *)
 let is_none = fun ob ->
   match ob with
-  | Some x -> true
-  | None -> false
+  | Some x -> false
+  | None -> true
 
 let get = fun ob ->
   match ob with
@@ -97,7 +97,7 @@ let rec context_match : term -> c_pattern -> bool = fun t p ->
   | (Lit i, InTerm (_, Lit j)) -> i = j
   | (Var x, InTerm (_, Var y)) -> x = y
   | (_, InTerm (_, Any)) -> true
-  | (_, InTerm (MetaVar x, MetaVar y)) -> true
+  | (_, InTerm (MetaVar y, MetaVar x)) -> x = y
   | (BinOp(t1, op, t2), InTerm (MetaVar x, BinOp(p1, p_op, p2))) ->
       p_op = op && context_match t1 (InTerm (MetaVar x, p1))
                 && context_match t2 (InTerm (MetaVar x, p2))
@@ -108,21 +108,21 @@ let rec find_bound_subterm : term -> c_pattern -> term option = fun t p ->
   | (_, Term pat) -> Some (List.hd (matching_list t pat)) (* TODO: Make better. *)
   | (_, InTerm (MetaVar x, MetaVar y)) -> if x = y then Some t else None
   | (BinOp(t1, op, t2), InTerm (MetaVar x, BinOp(p1, p_op, p2))) ->
-      if p_op = op then match find_bound_subterm t1 (InTerm (MetaVar x, p1)) with
-      | None -> find_bound_subterm t2 (InTerm (MetaVar x, p2))
-      | Some t -> Some t
+      if p_op = op then
+        match find_bound_subterm t1 (InTerm (MetaVar x, p1)) with
+        | None -> find_bound_subterm t2 (InTerm (MetaVar x, p2))
+        | Some t -> Some t
       else None
   | _  -> None
 
 let find_context : term -> c_pattern -> term = fun t c_pat ->
-  let rec context_aux : term -> term option = fun cur ->
+  let rec find_context_aux : term -> term option = fun cur ->
     if context_match cur c_pat then find_bound_subterm cur c_pat
     else match cur with
-    | BinOp (t1, op, t2) ->
-        let t1' = context_aux t1 and t2' = context_aux t2 in
-        if  is_none t1' then t2' else t1'
+    | BinOp (t1, op, t2) -> let t1' = find_context_aux t1 in
+        if is_none t1' then find_context_aux t2 else t1'
     | _ -> None
-  in get (context_aux t)
+  in get (find_context_aux t)
 
 let rec subterm_select : term -> c_pattern -> term list = fun t c_pat ->
   match (t, c_pat) with
