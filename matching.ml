@@ -41,7 +41,11 @@ let _ =
 
 let _ =
   Format.printf "Context Selection Tests. \n%!" ;
-  (* for i = 0 to List.length tests3 -1 do *)
-  List.map (Format.printf "[%a]\n%!" pretty_print) (subterm_select term1 pat1);
-  (* Format.print_string "\n" *)
-  (* done *)
+  for i = 0 to List.length tests3 -1 do
+  let (c_pat, t) = List.nth tests3 i in
+  Format.printf "Test %i \n%!" i;
+  Format.printf "Term: [%a] - " pretty_print t;
+  Format.printf "Pattern: [%a] - " pretty_print_context c_pat;
+  List.map (Format.printf "[%a]\n%!" pretty_print) (subterm_select t c_pat);
+  Format.print_string "\n"
+  done

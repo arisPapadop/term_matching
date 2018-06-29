@@ -20,6 +20,12 @@ let rec pretty_print : Format.formatter -> term -> unit = fun fmt t ->
       Format.fprintf fmt "(%a %s %a)" pretty_print t1 op pretty_print t2
   | MetaVar s -> Format.fprintf fmt "%s" s
 
+let pretty_print_context : Format.formatter -> c_pattern -> unit = fun fmt c_p ->
+  match c_p with
+  | Term pat -> pretty_print fmt pat
+  | InTerm (v, pat) ->
+      Format.fprintf fmt "%a in %a" pretty_print v pretty_print pat
+
 let rec term_match : term -> pattern -> bool = fun t p ->
   match (t, p) with
   | (Any, _) -> invalid_arg "Invalid term, contains wildcard."
