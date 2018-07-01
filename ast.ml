@@ -69,6 +69,7 @@ let matching_sub : term ->  pattern -> term -> term = fun t p s ->
 (* Minimal helpers, for the option pattern matching.
  * TODO: make them less minimal, maybe.
  * *)
+
 let is_none = fun ob ->
   match ob with
   | Some x -> false
@@ -77,7 +78,7 @@ let is_none = fun ob ->
 let get = fun ob ->
   match ob with
   | Some x -> x
-  | None -> assert false
+  | None -> raise (Not_found)
 
 (* Contextual Pattern Selection.
  * Given a term and a contextual pattern find all occurences of the subterm
