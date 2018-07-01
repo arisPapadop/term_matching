@@ -8,8 +8,9 @@ type term =
 type pattern = term
 
 type c_pattern =
-  | Term   of pattern
-  | InTerm of term * term (* Single level of depth. *)
+  | Term     of pattern
+  | InTerm   of term * term (* Single level of depth. *)
+  | InInTerm of term * term * term
 
 let rec pretty_print : Format.formatter -> term -> unit = fun fmt t ->
   match t with
@@ -26,6 +27,9 @@ let pretty_print_context : Format.formatter -> c_pattern -> unit =
   | Term pat -> pretty_print fmt pat
   | InTerm (v, pat) ->
       Format.fprintf fmt "%a in %a" pretty_print v pretty_print pat
+  | InInTerm (v, pat1, pat2) ->
+      Format.fprintf fmt "%a in %a in %a"
+        pretty_print v pretty_print pat1 pretty_print pat2
 
 let rec term_match : term -> pattern -> bool = fun t p ->
   match (t, p) with
@@ -90,7 +94,6 @@ let get = fun ob ->
  * - By assumption the term contains that metavariable exactly once -
  * it returns a term in which
  * *)
-
 let rec context_match : term -> c_pattern -> bool = fun t p ->
   match (t, p) with
   | (Any, _) -> invalid_arg "Invalid term, contains wildcard."
@@ -129,6 +132,8 @@ let rec subterm_select : term -> c_pattern -> term list = fun t c_pat ->
   match (t, c_pat) with
   | (t, Term pat) -> matching_list t pat
   | (t, InTerm (MetaVar _, _)) -> matching_list t (find_context t c_pat)
+  | (t, InInTerm (pat1, MetaVar x, pat2)) ->
+      matching_list (find_context t (InTerm (MetaVar x, pat2))) pat1
   | _ -> invalid_arg "Contextual Pattern not of the right form"
 
 

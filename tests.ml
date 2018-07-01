@@ -87,5 +87,12 @@ let term3  = term_from_string "((a + b) + c) + (a + b)"
  * let term4  = term_from_string "(a + b) + c"
  *)
 
-let tests3 = [(c_pat1, term1); (c_pat2, term2); (c_pat3, term3)]
-              (* (c_pat4, term4) *)
+let pat4_1 = term_from_string "_ * _"
+let pat4_2 = term_from_string "a + X"
+let c_pat4 = InInTerm (pat4_1, MetaVar "X", pat4_2)
+let term4  = term_from_string "a + (b + c * d)"
+
+
+
+let tests3 = [(c_pat1, term1); (c_pat2, term2); (c_pat3, term3);
+              (c_pat4, term4)]
