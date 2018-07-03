@@ -136,4 +136,3 @@ let rec subterm_select : term -> c_pattern -> term list = fun t c_pat ->
       matching_list (find_context t (InTerm (MetaVar x, pat2))) pat1
   | _ -> invalid_arg "Contextual Pattern not of the right form"
 
-

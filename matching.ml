@@ -38,7 +38,6 @@ let _ =
   Format.print_string "\n"
   done
 
-
 let _ =
   Format.printf "Context Selection Tests. \n%!" ;
   for i = 0 to List.length tests3 -1 do
